@@ -45,15 +45,25 @@ const createUser = async ({ fullName, email, username, password }) => {
 
     return { userId, accessToken, refreshToken };
   } catch (error) {
-    console.log(error);
+    catchError(
+      500,
+      "Error! While registering user"
+    );
   }
 };
 
 const findUserExist = async (username, email) => {
-  const query = `SELECT * FROM users WHERE username = $1 OR email = $2`;
-  const values = [username, email];
-  const result = await pool.query(query, values);
-  return result;
+  try{
+    const query = `SELECT * FROM users WHERE username = $1 OR email = $2`;
+    const values = [username, email];
+    const result = await pool.query(query, values);
+    return result;
+  }catch(error){
+    catchError(
+      500,
+      "OOPS! User Already Exist"
+    );
+  }
 };
 
 export { createUser, findUserExist };
