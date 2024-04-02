@@ -27,9 +27,13 @@ const connectDB = async () => {
       client.port,
       "!!"
     );
+    return pool;
   } catch (error) {
     console.log("PostgreSQL Connection Failed", error);
+    throw error;
   }
 };
 
-export default connectDB;
+export default pool;
+
+export { connectDB };
