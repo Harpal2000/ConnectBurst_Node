@@ -1,19 +1,55 @@
-import { throwError,sendSuccess } from "../utils/requestHandler.js";
+import { throwError, sendSuccess } from "../utils/requestHandler.js";
 import {
   findUserExist,
   createUser,
+  updateRefreshToken,
 } from "../models/user.models.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+
+const generateAccessAndRefreshTokens = async (userId,username,email,fullname) => {
+  try {
+    const tokenData = {
+      userId: userId,
+      username: username,
+      email: email,
+      fullname: fullname
+    }
+    const accessToken = jwt.sign(tokenData, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    });
+    const refreshToken = jwt.sign(
+      { userId },
+      process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+      }
+    );
+
+    const storeRefreshToken = await updateRefreshToken(refreshToken, userId);
+    if (!storeRefreshToken) {
+      catchError(500, "Unable to store refresh token!");
+    }
+    return { accessToken, refreshToken };
+  } catch (error) {
+    catchError(
+      500,
+      "Something went wrong while generating refresh and access tokens"
+    );
+  }
+};
 
 const registerUser = async (req, res) => {
-  const { email, fullName, username, password } = req.body;
+  const { email, fullname, username, password } = req.body;
 
   if (!email || email.trim() === "") {
     throwError(res, 400, "ValidationError", "Email field is required");
     return;
   }
 
-  if (!fullName || !username || !password) {
+  if (!fullname || !username || !password) {
     throwError(res, 400, "ValidationError", "All fields are required");
+    return;
   }
 
   try {
@@ -23,25 +59,58 @@ const registerUser = async (req, res) => {
         res,
         409,
         "conflict",
-        "User with email or username already exists"
+        "User with this email or username already exists"
       );
+      return;
     }
 
-    const { userId, accessToken, refreshToken } = await createUser({
+    const userData = await createUser({
       email,
-      fullName,
+      fullname,
       username,
       password,
     });
-    return sendSuccess(
-      res,
-      "User registered successfully",
-      { userId, accessToken, refreshToken },
-      200
-    );
+    return sendSuccess(res, "User registered successfully", userData, 200);
   } catch (error) {
-    console.log(error);
+    throwError(res, 500, "ServerError", "Internal Server Error While Registering");
   }
 };
 
-export { registerUser };
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await findUserExist(null, email);
+
+    if (user.rowCount === 0) {
+      throwError(res, 401, "Unauthorized", "Unable to find this user with this username or email!");
+      return;
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.rows[0].password);
+    if (!passwordMatch) {
+      throwError(res, 401, "Unauthorized", "Invalid email or password");
+      return;
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      user.rows[0].userid,
+      user.rows[0].username,
+      user.rows[0].email,
+      user.rows[0].fullname,
+    );
+
+    const data = {
+      userId: user.rows[0].userid,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+
+    return sendSuccess(res, "User logged in successfully", data, 200);
+
+  } catch (error) {
+    throwError(res, 500, "ServerError", "Internal Server Error While Login!");
+  }
+};
+
+export { registerUser, loginUser };

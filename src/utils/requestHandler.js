@@ -7,14 +7,14 @@ const catchError = (statusCode, errorType, errorMessage) => {
   };
   res.status(statusCode).json(error);
 };
-const throwError = (res, statusCode, errorType, errorMessage) => {
+const throwError = (res, status, errorType, errorMessage) => {
   const error = {
-    statusCode,
+    status,
     errorType,
     message: errorMessage,
     success: false,
   };
-  res.status(statusCode).json(error);
+  res.status(status).json(error);
 };
 
 const sendSuccess = (res, message, data = null, status = 200) => {
@@ -22,10 +22,11 @@ const sendSuccess = (res, message, data = null, status = 200) => {
     status = 200;
   }
   return res.status(status).json({
-    status: "success",
+    status: 200,
+    success: true,
     message: message || "Success result",
     data,
   });
 };
 
-export { throwError, sendSuccess,catchError };
+export { throwError, sendSuccess, catchError };
