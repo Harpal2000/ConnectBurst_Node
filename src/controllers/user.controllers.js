@@ -3,18 +3,25 @@ import {
   findUserExist,
   createUser,
   updateRefreshToken,
+  fetchAllUsers,
+  fetchUserById,
 } from "../models/user.models.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-const generateAccessAndRefreshTokens = async (userId,username,email,fullname) => {
+const generateAccessAndRefreshTokens = async (
+  userId,
+  username,
+  email,
+  fullname
+) => {
   try {
     const tokenData = {
       userId: userId,
       username: username,
       email: email,
-      fullname: fullname
-    }
+      fullname: fullname,
+    };
     const accessToken = jwt.sign(tokenData, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     });
@@ -52,6 +59,11 @@ const registerUser = async (req, res) => {
     return;
   }
 
+  if (password.length < 6) {
+    throwError(res, 400, "Password must be at least 6 characters!");
+    return;
+  }
+
   try {
     const userExist = await findUserExist(username, email);
     if (userExist.rowCount > 0) {
@@ -72,7 +84,12 @@ const registerUser = async (req, res) => {
     });
     return sendSuccess(res, "User registered successfully", userData, 200);
   } catch (error) {
-    throwError(res, 500, "ServerError", "Internal Server Error While Registering");
+    throwError(
+      res,
+      500,
+      "ServerError",
+      "Internal Server Error While Registering"
+    );
   }
 };
 
@@ -83,7 +100,12 @@ const loginUser = async (req, res) => {
     const user = await findUserExist(null, email);
 
     if (user.rowCount === 0) {
-      throwError(res, 401, "Unauthorized", "Unable to find this user with this username or email!");
+      throwError(
+        res,
+        401,
+        "Unauthorized",
+        "Unable to find this user with this username or email!"
+      );
       return;
     }
 
@@ -97,7 +119,7 @@ const loginUser = async (req, res) => {
       user.rows[0].userid,
       user.rows[0].username,
       user.rows[0].email,
-      user.rows[0].fullname,
+      user.rows[0].fullname
     );
 
     const data = {
@@ -107,10 +129,24 @@ const loginUser = async (req, res) => {
     };
 
     return sendSuccess(res, "User logged in successfully", data, 200);
-
   } catch (error) {
     throwError(res, 500, "ServerError", "Internal Server Error While Login!");
   }
 };
 
-export { registerUser, loginUser };
+const getAllUsers = async (req, res) => {
+  const allUsers = await fetchAllUsers();
+  return sendSuccess(res, "All Users Fetch Successfully", allUsers.rows, 200);
+};
+
+const getUserById = async (req, res) => {
+  try {
+    const { userid } = req.body;
+    const userData = await fetchUserById(userid);
+    return sendSuccess(res, "User data Fetch Successfully", userData.rows, 200);
+  } catch (err) {
+    console.log("Error! while fetch user data by Id", err);
+  }
+};
+
+export { registerUser, loginUser, getAllUsers, getUserById };

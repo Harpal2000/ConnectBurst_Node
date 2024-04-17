@@ -66,4 +66,30 @@ const updateRefreshToken = async (refreshToken, userId) => {
   }
 };
 
-export { createUser, findUserExist, updateRefreshToken };
+const fetchAllUsers = async () => {
+  try {
+    const query = `SELECT * FROM users`;
+    const allUsers = await pool.query(query);
+    return allUsers;
+  } catch (error) {
+    catchError(500, "Error! While fetching all users");
+  }
+};
+
+const fetchUserById = async (userId) => {
+  try {
+    const query = `SELECT * FROM users WHERE userid = $1`;
+    const UserData = await pool.query(query, [userId]);
+    return UserData;
+  } catch (error) {
+    catchError(500, "Error! While fetching all users");
+  }
+};
+
+export {
+  createUser,
+  findUserExist,
+  updateRefreshToken,
+  fetchAllUsers,
+  fetchUserById,
+};
