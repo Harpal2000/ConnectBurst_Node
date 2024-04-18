@@ -7,7 +7,8 @@ dotenv.config({
 
 const getAllFollows = async (follower_id) => {
   try {
-    const query = "SELECT * FROM Follows WHERE follower_id = $1";
+    const query =
+      "SELECT u.userid, u.email, u.fullname, u.username, f.follow_back, f.following_id FROM Follows f JOIN users u ON f.following_id = u.userid WHERE f.follower_id = $1";
     const values = [follower_id];
     const result = await pool.query(query, values);
     return result.rows;
@@ -31,13 +32,12 @@ const followUser = async (follower_id, following_id) => {
 const followBack = async (following_id) => {
   try {
     const query = "UPDATE Follows SET follow_back = $1 WHERE following_id = $2";
-    const values = [following_id,following_id];
+    const values = [following_id, following_id];
     const result = await pool.query(query, values);
     return result.rows;
   } catch (error) {
     throw new Error(`Error while Follow Back: ${error.message}`);
   }
 };
-
 
 export { getAllFollows, followUser, followBack };
