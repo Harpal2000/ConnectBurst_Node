@@ -18,9 +18,11 @@ app.post('/', (req, res) => {
 import userRoutes from "./routes/user.routes.js";
 import followRoutes from "./routes/follow.routes.js";
 import messageRoutes from "./routes/message.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/follow", followRoutes);
 app.use("/api/v1/chat", messageRoutes);
+app.use("/api/v1/s3", uploadRoutes);
 
 export { app };
