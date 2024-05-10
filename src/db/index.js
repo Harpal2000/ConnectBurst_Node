@@ -1,5 +1,7 @@
 import pg from "pg";
 import dotenv from "dotenv";
+import fs from "fs";
+
 dotenv.config({
   path: "./.env",
 });
@@ -11,6 +13,7 @@ const db_config = {
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
+  ssl: true
 };
 
 const pool = new Pool(db_config);

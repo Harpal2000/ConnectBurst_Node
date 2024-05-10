@@ -2,7 +2,7 @@ import {
   uploadToS3,
   getImagesFromS3,
 } from "../middlewares/upload.middlewares.js";
-import { addPostDataToDB,getUserPostData } from "../models/upload.models.js";
+import { addPostDataToDB, getUserPostData } from "../models/upload.models.js";
 
 const uploadFiles = async (req, res) => {
   let files = req.files || [];
@@ -22,7 +22,7 @@ const uploadFiles = async (req, res) => {
     }
 
     const imageKeys = await uploadToS3(files);
-    
+
     const imageIds = [];
 
     for (const imageKey of imageKeys) {
