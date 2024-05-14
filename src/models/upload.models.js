@@ -5,11 +5,11 @@ dotenv.config({
   path: "./.env",
 });
 
-const addPostDataToDB = async (imageKey, caption, location, userid) => {
+const addPostDataToDB = async (imageKeys, caption, location, userid) => {
   try {
     const query =
       "INSERT INTO Posts (user_id,caption, image_keys, location) VALUES ($1, $2, $3,$4) RETURNING *";
-    const values = [userid, caption, imageKey, location];
+    const values = [userid, caption, imageKeys, location];
     const result = await pool.query(query, values);
     return result.rows[0];
   } catch (error) {
@@ -28,4 +28,4 @@ const getUserPostData = async (userId) => {
   }
 };
 
-export { addPostDataToDB,getUserPostData };
+export { addPostDataToDB, getUserPostData };

@@ -13,7 +13,7 @@ const db_config = {
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
-  ssl: true
+  // ssl: true //only for Azure db
 };
 
 const pool = new Pool(db_config);

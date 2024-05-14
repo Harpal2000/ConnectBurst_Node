@@ -34,6 +34,11 @@ const uploadToS3 = async (files) => {
   return Promise.all(promises);
 };
 
+const convertHTTPStoHTTP = (URL) => {
+  const httpURL = "http" + URL.split("https")[1];
+  return httpURL;
+};
+
 const getImagesFromS3 = async (keys) => {
   try {
     if (!Array.isArray(keys)) {
@@ -44,17 +49,19 @@ const getImagesFromS3 = async (keys) => {
 
     for (const key of keys) {
       const params = {
-        Bucket:  process.env.S3_BUCKET_NAME,
+        Bucket: process.env.S3_BUCKET_NAME,
         Key: key,
       };
 
-      const data = await s3.getObject(params).promise();
+      const image_url = await s3.getSignedUrlPromise("getObject", params);
+
+      const httpUrls = convertHTTPStoHTTP(image_url)
+
       images.push({
         key,
-        data: data.Body,
+        url: httpUrls,
       });
     }
-
     return images;
   } catch (error) {
     console.error('Error fetching images from S3: ', error);
@@ -65,4 +72,5 @@ const getImagesFromS3 = async (keys) => {
 
 
 
-export { uploadToS3,getImagesFromS3 };
+
+export { uploadToS3, getImagesFromS3 };
