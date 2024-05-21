@@ -19,7 +19,7 @@ const addPostDataToDB = async (imageKeys, caption, location, userid) => {
 
 const getUserPostData = async (userId) => {
   try {
-    const query = "SELECT * FROM Posts WHERE user_id = $1 ";
+    const query = "SELECT Users.fullName, Users.email, Users.username,Users.userid,Posts.* FROM Posts JOIN Users ON Posts.user_id = Users.userId WHERE Posts.user_id = $1";
     const values = [userId];
     const result = await pool.query(query, values);
     return result.rows;
@@ -27,5 +27,15 @@ const getUserPostData = async (userId) => {
     throw new Error(`Error following user: ${error.message}`);
   }
 };
+const getAllPostData = async () => {
+  try {
+    const query = "SELECT Users.fullName, Users.email, Users.username,Users.userid,Posts.* FROM Posts JOIN users ON Posts.user_id = Users.userid";
+    // const values = [userId];
+    const result = await pool.query(query);
+    return result.rows;
+  } catch (error) {
+    throw new Error(`Error getting user post data: ${error.message}`);
+  }
+};
 
-export { addPostDataToDB, getUserPostData };
+export { addPostDataToDB, getUserPostData, getAllPostData };
